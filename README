@@ -1,0 +1,27 @@
+Configuration handler to go from default -> config files -> environmental variables -> command line options.
+
+Adds an option to dump the current loaded config as a config file, and
+the ability to expand environmental variables in help msgs.  Options
+that come from a config file MUST be in a config group.
+
+Extends/depends on os, ConfigParser, and optparse.
+
+Advanced functionality of ConfigParser and optparse HAS NOT BEEN TESTED.
+
+Usage example:
+
+    from ConfigManager import ConfigManager, ConfigGroup
+
+    appname = 'cfgmgr'   # could use basename, I suppose
+
+    cfgmgr = ConfigManager()
+    cfgmgr.set_config_files(['/etc/%s/%s.conf' % (appname, appname),
+                             os.path.expanduser('~/.%s.cfg' % appname)]
+
+    daemonGroup = ConfigGroup(cfgmgr, "Daemon", "Settings for running as a daemon.")
+    daemonGroup.add_option('-p', '--pidfile', envvar="CFGMGR_PIDFILE",
+                           help="The location to use for the pid file.",
+                           default="/var/run/%s.pid" % (appname,))
+
+    cfgmgr.add_option_group(daemonGroup)
+    print cfgmgr.parse_args()
