@@ -171,18 +171,43 @@ class ConfigManager(OptionParser):
     def generate_and_print_config_file(self):
         """Generate a config file.
         """
+        if hasattr(self, '_curr_config_files'):
+            print "# Current config files searched:"
+            for f in self._curr_config_files:
+                print "# %s" % f
+            print
+
         for grp in self.option_groups:
             print "[%s]" % grp.title
+            desc = grp.get_description()
+            if desc:
+                print "## %s\n" % desc
+
             for opt in grp.option_list:
-                print "%s = %s" % (opt.dest, opt.default)
-            print
+                self._print_opt_help_msg(opt)
+                self._print_opt_config_pair(opt)
+            print # Empty line, to separate groups.
+
+    def _print_opt_help_msg(self, opt):
+        help_msg = None
+        if hasattr(opt, 'help'):
+            help_msg = "## %s" % opt.help
+            if hasattr(opt, 'default'):
+                help_msg =  help_msg.replace('%default', str(opt.default))
+            if hasattr(opt, 'envvar'):
+                help_msg =  help_msg.replace('%envvar', str(opt.envvar))
+        if help_msg:
+            print help_msg
+
+    def _print_opt_config_pair(self, opt):
+        print "%s = %s" % (opt.dest, opt.default)
 
     def _populate_option_list(self, option_list, add_help=True):
         OptionParser._populate_option_list(self, option_list, add_help)
         self._add_generate_config_file_option()
 
     def read_config_files(self, file_or_files):
-
+        self._curr_config_files = file_or_files
         self.config_file_vars = SafeConfigParser()
         self.config_file_vars.read(file_or_files)
 
